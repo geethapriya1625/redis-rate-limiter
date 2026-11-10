@@ -1,0 +1,20 @@
+# loadtest/script_bench.py, 3 consecutive runs
+# Environment: 2 vCPU Intel Xeon @ 2.10GHz cloud VM (Linux x86_64), Redis 7.0.15 on localhost,
+# Python 3.13 + redis-py clients on the same 2 vCPUs (so clients and server compete for CPU).
+# Date: 2026-11-09
+
+correctness: burst of 5 then deny, refill 2 tokens in 250 ms, TTL set  ✓
+atomicity:   32 threads x 20 calls on one bucket (cap 50) -> exactly 50 allowed  ✓
+naive GET/SET in the client, same race -> 635 allowed (should be 50)
+throughput:  2 client processes, 10s, 1,000 keys -> 13,125 decisions/s, round-trip p50 129 µs, p99 323 µs (mean 150 µs)
+---
+correctness: burst of 5 then deny, refill 2 tokens in 250 ms, TTL set  ✓
+atomicity:   32 threads x 20 calls on one bucket (cap 50) -> exactly 50 allowed  ✓
+naive GET/SET in the client, same race -> 640 allowed (should be 50)
+throughput:  2 client processes, 10s, 1,000 keys -> 13,075 decisions/s, round-trip p50 129 µs, p99 329 µs (mean 151 µs)
+---
+correctness: burst of 5 then deny, refill 2 tokens in 250 ms, TTL set  ✓
+atomicity:   32 threads x 20 calls on one bucket (cap 50) -> exactly 50 allowed  ✓
+naive GET/SET in the client, same race -> 640 allowed (should be 50)
+throughput:  2 client processes, 10s, 1,000 keys -> 13,573 decisions/s, round-trip p50 123 µs, p99 306 µs (mean 145 µs)
+---

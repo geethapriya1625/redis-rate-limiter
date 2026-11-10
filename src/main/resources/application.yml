@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: redis-rate-limiter
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 250ms          # a slow limiter must not become a slow API
+      connect-timeout: 500ms
+
+ratelimit:
+  enabled: true
+  key-prefix: "rl:"
+  fail-open: true
+  client-header: X-Api-Key
+  policies:
+    # first match wins: specific before broad
+    - name: search
+      path-pattern: /api/search/**
+      capacity: 5
+      refill-per-second: 1
+    - name: default
+      path-pattern: /api/**
+      capacity: 20
+      refill-per-second: 10
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
