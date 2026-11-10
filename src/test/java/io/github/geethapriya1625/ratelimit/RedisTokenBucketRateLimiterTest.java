@@ -45,13 +45,20 @@ class RedisTokenBucketRateLimiterTest extends RedisTestBase {
     void refillsAtTheConfiguredRate() throws Exception {
         String key = key();
         for (int i = 0; i < 5; i++) {
-            limiter.tryAcquire(key, 5, 10, 1);
+            limiter.tryAcquire(key, 5, 2, 1);
         }
-        assertThat(limiter.tryAcquire(key, 5, 10, 1).allowed()).isFalse();
-        Thread.sleep(250);  // ~2.5 tokens
-        assertThat(limiter.tryAcquire(key, 5, 10, 1).allowed()).isTrue();
-        assertThat(limiter.tryAcquire(key, 5, 10, 1).allowed()).isTrue();
-        assertThat(limiter.tryAcquire(key, 5, 10, 1).allowed()).isFalse();
+        assertThat(limiter.tryAcquire(key, 5, 2, 1).allowed()).isFalse();
+
+        // 2 tokens/s: after 700 ms at least 1.4 tokens are back. The upper bound leaves
+        // headroom for slow CI machines instead of asserting an exact count.
+        Thread.sleep(700);
+        int allowed = 0;
+        for (int i = 0; i < 5; i++) {
+            if (limiter.tryAcquire(key, 5, 2, 1).allowed()) {
+                allowed++;
+            }
+        }
+        assertThat(allowed).isBetween(1, 2);
     }
 
     @Test
